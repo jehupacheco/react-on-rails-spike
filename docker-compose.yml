@@ -1,0 +1,32 @@
+version: '3'
+services:
+  db:
+    image: postgres
+  back:
+    build:
+      context: .
+      dockerfile: DockerfileBack
+    privileged: true
+    command: bash -c "bundle exec rake react_on_rails:locale && rm -f tmp/pids/server.pid && REACT_ON_RAILS_ENV= rails s -p 3000 -b 0.0.0.0"
+    volumes:
+      - .:/myapp
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+  front:
+    build:
+      context: .
+      dockerfile: DockerfileFront
+    command: bash -c 'rm -rf public/webpack/development || true && yarn run build:dev:client'
+    volumes:
+      - .:/home/node/app
+    ports:
+      - "3500:3500"
+  server_render:
+    build:
+      context: .
+      dockerfile: DockerfileFront
+    command: bash -c 'yarn run build:dev:server'
+    volumes:
+      - .:/home/node/app

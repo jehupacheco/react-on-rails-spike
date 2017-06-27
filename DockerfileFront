@@ -1,0 +1,11 @@
+FROM node:6
+RUN apt-get update && apt-get -y upgrade
+RUN wget https://yarnpkg.com/install.sh
+RUN chmod +x install.sh
+RUN ./install.sh --version 0.26.1
+RUN yarn --version
+ADD . /home/node/app
+RUN chown -R node:node /home/node
+USER node
+ENV HOME /home/node
+WORKDIR /home/node/app

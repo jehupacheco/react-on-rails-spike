@@ -1,0 +1,94 @@
+Setting the environment for Rails and Installing Rails 5
+=========================================================
+
+* Create a Gemfile and add there:
+    source 'https://rubygems.org'
+    gem 'rails', '5.0.3'
+* Create a Gemfile.lock:
+    touch Gemfile.lock
+* Generate Rails skeleton with:
+    docker-compose run back rails new . --force --database=postgresql --skip-bundle
+* Change the ownership of the files:
+    sudo chown -R $USER:$USER .
+* Replace the contents of config/database.yml with the following:
+    development: &default
+      adapter: postgresql
+      encoding: unicode
+      database: myapp_development
+      pool: 5
+      username: postgres
+      password:
+      host: db
+
+    test:
+      <<: *default
+      database: myapp_test
+* Run install all needed gems:
+    docker-compose build back
+* Now create the database:
+    docker-compose run back rake db:create
+
+Setting the environment for ReactOnRails
+=========================================================
+Based on this tutorial: https://github.com/shakacode/react_on_rails/blob/master/docs/tutorial.md
+
+* Add to your Gemfile:
+    docker-compose run back gem install react_on_rails
+* Put everything in a git repo (rails generate will not work properly otherwise)
+    git init
+    git add -A
+    git commit -m "Initial commit"
+* Install the new gems
+    docker-compose build back
+* Generate the app skeleton via react_on_rails
+    docker-compose run back rails generate react_on_rails:install --ignore-warnings
+* Change the ownership of the files:
+    sudo chown -R $USER:$USER .
+* Install the new gems
+    docker-compose build back
+* Build the Node environment and install dependecies
+    docker-compose run front yarn
+
+Adding Hot Reloading via Webpack-dev-server
+======================================================
+Follow this tutorial
+  https://github.com/shakacode/react_on_rails/blob/master/docs/additional-reading/hot-reloading-rails-development.md
+
+With these changes:
+
+* Ignore the Procfiles
+
+* Create a config directory inside client and copy the following given files there (not the tutorial files):
+  - webpack.client.base.config.js
+  - webpack.client.rails.hot.config.js
+  - webpack.client.rails.build.config.js
+  - webpack.server.rails.build.config.js
+
+* Do not copy the tutorial's package.json, just add the scripts:
+  Top Level:
+    "build:production:client": "(cd client && yarn run build:production:client --silent)",
+    "build:production:server": "(cd client && yarn run build:production:server --silent)",
+    "build:client": "(cd client && yarn run build:client --silent",
+    "build:server": "(cd client && yarn run build:server --silent)",
+    "build:dev:client": "(cd client && yarn run build:dev:client --silent)",
+    "build:dev:server": "(cd client && yarn run build:dev:server --silent)",
+    "hot-assets": "(cd client && yarn run hot-assets)"
+
+  Client Level:
+    "build:production:client": "NODE_ENV=production webpack --config config/webpack.client.rails.build.config.js",
+    "build:production:server": "NODE_ENV=production webpack --config config/webpack.server.rails.build.config.js",
+    "build:client": "webpack --config config/webpack.client.rails.build.config.js",
+    "build:dev:client": "webpack -w --config config/webpack.client.rails.build.config.js",
+    "build:dev:server": "webpack -w --config config/webpack.server.rails.build.config.js",
+    "build:server": "webpack --config config/webpack.server.rails.build.config.js",
+    "hot-assets": "babel-node server-rails-hot.js",
+
+* In the server-rails-hot.js file update this lines
+    import webpackConfig from './config/webpack.client.rails.hot.config';
+
+    devServer.listen(hotRailsPort, '0.0.0.0', err => {
+
+* Install required dependencies:
+    docker-compose run front bash -c 'cd client && yarn add file-loader url-loader webpack-dev-server style-loader css-loader postcss-loader node-sass sass-loader sass-resources-loader autoprefixer extract-text-webpack-plugin expose-loader'
+
+    docker-compose run front bash -c 'cd client && yarn add babel-plugin-react-transform body-parser jsdom react-transform-hmr tape --dev'

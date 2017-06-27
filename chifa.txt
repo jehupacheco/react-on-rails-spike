@@ -33,7 +33,7 @@ Setting the environment for ReactOnRails
 Based on this tutorial: https://github.com/shakacode/react_on_rails/blob/master/docs/tutorial.md
 
 * Add to your Gemfile:
-    docker-compose run back gem install react_on_rails
+    gem 'react_on_rails', '8.0.1' #Replace with desired version
 * Put everything in a git repo (rails generate will not work properly otherwise)
     git init
     git add -A
